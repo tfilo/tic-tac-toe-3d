@@ -1,30 +1,31 @@
 import React, { useCallback, useContext, useId } from 'react';
 import { GameContext } from '../../store/GameContext';
 import Mark from '../playground/Mark';
+import { MAX_PLAYGROUND_SIZE, MIN_PLAYGROUND_SIZE } from '../../utils/commonConstatns';
 
 const Controls: React.FC = () => {
-    const { playgroundSize, setPlaygroundSize, activePlayer, reset } = useContext(GameContext);
+    const { playgroundSize, activePlayer, resetPlayground } = useContext(GameContext);
     const id = useId();
 
     const setNewSize = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const value = +e.target.value;
             if (isNaN(value)) {
-                setPlaygroundSize(3);
-            } else if (value < 3) {
-                setPlaygroundSize(3);
-            } else if (value > 6) {
-                setPlaygroundSize(6);
+                resetPlayground(MIN_PLAYGROUND_SIZE);
+            } else if (value < MIN_PLAYGROUND_SIZE) {
+                resetPlayground(MIN_PLAYGROUND_SIZE);
+            } else if (value > MAX_PLAYGROUND_SIZE) {
+                resetPlayground(MAX_PLAYGROUND_SIZE);
             } else {
-                setPlaygroundSize(value);
+                resetPlayground(value);
             }
         },
-        [setPlaygroundSize]
+        [resetPlayground]
     );
 
     return (
         <aside className='absolute top-0 left-0 w-72 h-full border-r flex flex-col text-center gap-4 p-4'>
-            <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' onClick={reset}>
+            <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' onClick={(e) => resetPlayground()}>
                 New game
             </button>
             <div>

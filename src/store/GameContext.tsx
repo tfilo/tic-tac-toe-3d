@@ -1,15 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createContext, PropsWithChildren } from 'react';
+import { DEFAULT_PLAYER, DEFAULT_PLAYGROUND_SIZE } from '../utils/commonConstatns';
+import { Result, score } from '../utils/score';
 
 export type PlayerMark = 'x' | 'o';
 
 type GameContextValue = {
-    playgroundSize: number;
-    setPlaygroundSize: React.Dispatch<React.SetStateAction<number>>;
-    playground: (PlayerMark | null)[][][];
-    mark: (coordinates: { level: number; row: number; col: number }) => void;
-    activePlayer: PlayerMark;
-    reset: () => void;
+    /** Size of single side of cube playground */
+    readonly playgroundSize: number;
+    /** Playground array with marked all moves */
+    readonly playground: (PlayerMark | null)[][][];
+    /** Current user on the move */
+    readonly activePlayer: PlayerMark;
+    /** Marks move for current user and change to next user */
+    markMove: (coordinates: { level: number; row: number; column: number }) => void;
+    /** Resets playground, optionaly change to different size */
+    resetPlayground: (newSize?: number) => void;
+    /** Game result with winner and winning marks coordinates */
+    result: Result | undefined;
 };
 
 const generatePlayground = (dimension: number) => {
@@ -30,26 +38,21 @@ const generatePlayground = (dimension: number) => {
 
 export const GameContext = createContext<GameContextValue>({} as GameContextValue);
 
-const DEFAULT_SIZE = 4 as const;
-const DEFAULT_PLAYER = 'x' as const;
-
-const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
-    const [playgroundSize, setPlaygroundSize] = useState<number>(DEFAULT_SIZE);
-    const [playground, setPlayground] = useState<(PlayerMark | null)[][][]>(generatePlayground(playgroundSize));
+export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
+    const [playground, setPlayground] = useState<(PlayerMark | null)[][][]>(generatePlayground(DEFAULT_PLAYGROUND_SIZE));
     const [activePlayer, setActivePlayer] = useState<PlayerMark>(DEFAULT_PLAYER);
+    const [result, setResult] = useState<Result>();
+    const playgroundSize = playground.length;
 
-    const mark = useCallback(
-        (coordinates: { level: number; row: number; col: number }) => {
-            if (playground.length !== playgroundSize) {
-                throw new Error("Playground dimensions doesn't match value of playgroundSize variable!");
-            }
+    const markMove = useCallback(
+        (coordinates: { level: number; row: number; column: number }) => {
             try {
                 setPlayground((prev) => {
-                    if (prev[coordinates.level][coordinates.row][coordinates.col] !== null) {
+                    if (prev[coordinates.level][coordinates.row][coordinates.column] !== null) {
                         throw new Error('Cell already used!');
                     }
                     const result = structuredClone(prev);
-                    result[coordinates.level][coordinates.row][coordinates.col] = activePlayer;
+                    result[coordinates.level][coordinates.row][coordinates.column] = activePlayer;
                     return result;
                 });
                 setActivePlayer((prev) => {
@@ -60,36 +63,43 @@ const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
                     }
                 });
             } catch (e) {
-                throw new Error("Playground size doesn't match playgroundSize");
+                throw new Error('An error occured while making move!');
             }
         },
-        [activePlayer, playground.length, playgroundSize]
+        [activePlayer]
     );
 
-    console.log(playground);
-
-    const reset = useCallback(() => {
-        setPlayground(generatePlayground(playgroundSize));
-        setActivePlayer(DEFAULT_PLAYER);
-    }, [playgroundSize]);
+    const resetPlayground = useCallback(
+        (newSize?: number) => {
+            if (newSize && !isNaN(+newSize) && newSize >= 3 && newSize <= 6) {
+                setPlayground(generatePlayground(newSize));
+            } else {
+                setPlayground(generatePlayground(playgroundSize));
+            }
+            setResult(undefined);
+            setActivePlayer(DEFAULT_PLAYER);
+        },
+        [playgroundSize]
+    );
 
     useEffect(() => {
-        setPlayground(generatePlayground(playgroundSize));
-    }, [playgroundSize]);
+        const winner = score(playground);
+        if (winner) {
+            setResult(winner);
+        }
+    }, [playground]);
 
     const context: GameContextValue = useMemo(
         () => ({
-            playgroundSize,
-            setPlaygroundSize,
             playground,
-            mark,
+            playgroundSize,
             activePlayer,
-            reset
+            markMove,
+            resetPlayground,
+            result
         }),
-        [activePlayer, mark, playground, playgroundSize, reset]
+        [activePlayer, markMove, playground, playgroundSize, resetPlayground, result]
     );
 
     return <GameContext.Provider value={context}>{children}</GameContext.Provider>;
 };
-
-export default GameProvider;

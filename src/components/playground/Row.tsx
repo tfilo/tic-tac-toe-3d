@@ -1,6 +1,6 @@
 import React from 'react';
 import { PlayerMark } from '../../store/GameContext';
-import Col from './Col';
+import Column from './Column';
 
 type RowProps = {
     row: (PlayerMark | null)[];
@@ -11,8 +11,8 @@ type RowProps = {
 const Row: React.FC<RowProps> = ({ row, levelIdx, rowIdx }) => {
     return (
         <div className='flex flex-row'>
-            {row.map((col, idx) => {
-                return <Col key={idx} col={col} levelIdx={levelIdx} rowIdx={rowIdx} colIdx={idx} />;
+            {row.map((column, idx) => {
+                return <Column key={idx} column={column} levelIdx={levelIdx} rowIdx={rowIdx} columnIdx={idx} />;
             })}
         </div>
     );

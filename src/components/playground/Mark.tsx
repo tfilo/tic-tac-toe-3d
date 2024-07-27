@@ -7,11 +7,11 @@ type MarkProps = {
 
 const Mark: React.FC<MarkProps> = ({ symbol }) => {
     if (symbol === 'x') {
-        return <div className='text-red-600 font-bold text-lg'>{symbol}</div>;
+        return <div className='text-red-600 font-bold text-2xl'>{symbol}</div>;
     }
 
     if (symbol === 'o') {
-        return <div className='text-blue-600 font-bold text-lg'>{symbol}</div>;
+        return <div className='text-blue-600 font-bold text-2xl'>{symbol}</div>;
     }
 
     return null;

@@ -2,7 +2,7 @@ import React from 'react';
 import Header from './components/header/Header';
 import Controls from './components/controls/Controls';
 import Playground from './components/playground/Playground';
-import GameProvider from './store/GameContext';
+import { GameProvider } from './store/GameContext';
 
 const Game: React.FC = () => {
     return (

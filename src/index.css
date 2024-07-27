@@ -9,3 +9,16 @@ body {
     width: 100%;
     height: 100%;
 }
+
+.level-wrapper {
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    perspective: 250px;
+}
+
+.level {
+    position: absolute;
+    transform-style: flat;
+    transform: rotateX(45deg);
+}
