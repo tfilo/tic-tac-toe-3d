@@ -1,13 +1,12 @@
 import React, { useContext } from 'react';
-import { GameContext, PlayerMark } from '../../store/GameContext';
+import { GameContext } from '../../store/GameContext';
 import Row from './Row';
 
 type LevelProsp = {
-    level: (PlayerMark | null)[][];
     levelIdx: number;
 };
 
-const Level: React.FC<LevelProsp> = ({ level, levelIdx }) => {
+const Level: React.FC<LevelProsp> = ({ levelIdx }) => {
     const { playgroundSize } = useContext(GameContext);
 
     return (
@@ -18,8 +17,8 @@ const Level: React.FC<LevelProsp> = ({ level, levelIdx }) => {
             }}
         >
             <div className='flex flex-col border level'>
-                {level.map((row, idx) => {
-                    return <Row key={idx} row={row} levelIdx={levelIdx} rowIdx={idx} />;
+                {new Array(playgroundSize).fill(null).map((_, rowIdx) => {
+                    return <Row key={rowIdx} levelIdx={levelIdx} rowIdx={rowIdx} />;
                 })}
             </div>
         </section>

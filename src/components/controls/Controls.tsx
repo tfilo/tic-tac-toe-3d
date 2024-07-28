@@ -48,7 +48,7 @@ const Controls: React.FC = () => {
                     Active player
                 </label>
                 <div id={`activePlayer_${id}`}>
-                    <Mark symbol={activePlayer} />
+                    <Mark mark={activePlayer} />
                 </div>
             </div>
         </aside>

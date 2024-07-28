@@ -1,18 +1,19 @@
-import React from 'react';
-import { PlayerMark } from '../../store/GameContext';
+import React, { useContext } from 'react';
 import Column from './Column';
+import { GameContext } from '../../store/GameContext';
 
 type RowProps = {
-    row: (PlayerMark | null)[];
     levelIdx: number;
     rowIdx: number;
 };
 
-const Row: React.FC<RowProps> = ({ row, levelIdx, rowIdx }) => {
+const Row: React.FC<RowProps> = ({ levelIdx, rowIdx }) => {
+    const { playgroundSize } = useContext(GameContext);
+
     return (
         <div className='flex flex-row'>
-            {row.map((column, idx) => {
-                return <Column key={idx} column={column} levelIdx={levelIdx} rowIdx={rowIdx} columnIdx={idx} />;
+            {new Array(playgroundSize).fill(null).map((_, columnIdx) => {
+                return <Column key={columnIdx} levelIdx={levelIdx} rowIdx={rowIdx} columnIdx={columnIdx} />;
             })}
         </div>
     );

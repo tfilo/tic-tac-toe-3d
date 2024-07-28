@@ -1,64 +1,130 @@
-import { PlayerMark } from '../store/GameContext';
+import { NullablePlayerMark, PlayerMark } from '../store/GameContext';
 
-export type WinningMark = [level: number, row: number, column: number];
 export type Result = {
-    winningMarks: WinningMark[];
-    player: PlayerMark;
+    winningMarksIndex: number[];
+    winner: PlayerMark;
 };
 
-const checkRows = (level: (PlayerMark | null)[][], levelIdx: number): Result | undefined => {
-    for (let rowIdx = 0; rowIdx < level.length; rowIdx++) {
-        const mark = level[rowIdx][0];
-        if (mark !== null) {
-            const result: WinningMark[] = [];
-            for (let colIdx = 0; colIdx < level.length; colIdx++) {
-                result.push([levelIdx, rowIdx, colIdx]);
-                if (mark === level[rowIdx][colIdx]) {
-                    if (colIdx === level.length - 1) {
-                        return {
-                            winningMarks: result,
-                            player: mark
-                        };
+export const score = (playground: NullablePlayerMark[], playgroundSize: number) => {
+    /* Look for completed row in level */
+    for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
+        for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
+            const firstMarkInRowIndex = levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize;
+            const firstMarkInRow = playground[firstMarkInRowIndex];
+            if (firstMarkInRow !== null) {
+                const winningMarksIndex: number[] = [];
+                /* Check every column of row if contains equals mark to first mark in row */
+                for (let columnIdx = 0; columnIdx < playgroundSize; columnIdx++) {
+                    const cellIndex = firstMarkInRowIndex + columnIdx;
+                    if (firstMarkInRow !== playground[cellIndex]) {
+                        break;
                     }
-                } else {
-                    break;
+                    winningMarksIndex.push(cellIndex);
+                }
+                if (winningMarksIndex.length === playgroundSize) {
+                    return {
+                        winningMarksIndex,
+                        winner: firstMarkInRow
+                    };
                 }
             }
         }
     }
-};
 
-const checkCols = (level: (PlayerMark | null)[][], levelIdx: number): Result | undefined => {
-    for (let colIdx = 0; colIdx < level.length; colIdx++) {
-        const mark = level[0][colIdx];
-        if (mark !== null) {
-            const result: WinningMark[] = [];
-            for (let rowIdx = 0; rowIdx < level.length; rowIdx++) {
-                result.push([levelIdx, rowIdx, colIdx]);
-                if (mark === level[rowIdx][colIdx]) {
-                    if (rowIdx === level.length - 1) {
-                        return {
-                            winningMarks: result,
-                            player: mark
-                        };
+    /* Look for completed columns in level */
+    for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
+        for (let columnIdx = 0; columnIdx < playgroundSize; columnIdx++) {
+            const firstMarkInColumnIndex = levelIdx * playgroundSize * playgroundSize + columnIdx;
+            const firstMarkInColumn = playground[firstMarkInColumnIndex];
+            if (firstMarkInColumn !== null) {
+                const winningMarksIndex: number[] = [];
+                /* Check every row of column if contains equals mark to first mark in column */
+                for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
+                    const cellIndex = firstMarkInColumnIndex + rowIdx * playgroundSize;
+                    if (firstMarkInColumn !== playground[cellIndex]) {
+                        break;
                     }
-                } else {
-                    break;
+                    winningMarksIndex.push(cellIndex);
+                }
+                if (winningMarksIndex.length === playgroundSize) {
+                    return {
+                        winningMarksIndex,
+                        winner: firstMarkInColumn
+                    };
                 }
             }
         }
     }
-};
 
-export const score = (playground: (PlayerMark | null)[][][]) => {
-    const res = playground.map((level, levelIdx) => {
-        let res = checkRows(level, levelIdx);
-        if (res === undefined) {
-            res = checkCols(level, levelIdx);
+    /* Look for completed diagonal in level */
+    for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
+        /* Check diagonal from left to right (top to bottom) */
+        const firstMarkInFirstRowIndex = levelIdx * playgroundSize * playgroundSize;
+        const firstMarkInFirstRow = playground[firstMarkInFirstRowIndex];
+        if (firstMarkInFirstRow !== null) {
+            const winningMarksIndex: number[] = [];
+            for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
+                const cellIndex = levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize + rowIdx;
+                if (firstMarkInFirstRow !== playground[cellIndex]) {
+                    break;
+                }
+                winningMarksIndex.push(cellIndex);
+            }
+            if (winningMarksIndex.length === playgroundSize) {
+                return {
+                    winningMarksIndex,
+                    winner: firstMarkInFirstRow
+                };
+            }
         }
-        return res;
-    });
+        /* Check diagonal from right to left (top to bottom) */
+        const lastMarkInFirstRowIndex = levelIdx * playgroundSize * playgroundSize + (playgroundSize - 1);
+        const lastMarkInFirstRow = playground[lastMarkInFirstRowIndex];
+        if (lastMarkInFirstRow !== null) {
+            const winningMarksIndex: number[] = [];
+            for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
+                const cellIndex = levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize + (playgroundSize - 1 - rowIdx);
+                if (lastMarkInFirstRow !== playground[cellIndex]) {
+                    break;
+                }
+                winningMarksIndex.push(cellIndex);
+            }
+            if (winningMarksIndex.length === playgroundSize) {
+                return {
+                    winningMarksIndex,
+                    winner: lastMarkInFirstRow
+                };
+            }
+        }
+    }
 
-    const winner = res.find((res) => !!res);
-    return winner;
+    /* Look for completed pillars (same spot across levels) */
+
+    for (let topLevelCellIdx = 0; topLevelCellIdx < playgroundSize * playgroundSize; topLevelCellIdx++) {
+        const topLevelCellMark = playground[topLevelCellIdx];
+        if (topLevelCellMark !== null) {
+            const winningMarksIndex: number[] = [];
+            for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
+                const cellIndex = levelIdx * playgroundSize * playgroundSize + topLevelCellIdx;
+                if (topLevelCellMark !== playground[cellIndex]) {
+                    break;
+                }
+                winningMarksIndex.push(cellIndex);
+            }
+            if (winningMarksIndex.length === playgroundSize) {
+                return {
+                    winningMarksIndex,
+                    winner: topLevelCellMark
+                };
+            }
+        }
+    }
+
+    /* TODO 
+        All are top to bottom:
+        Look for diagonal across levels left to right, right to left, front to back, back to front
+        Look for diagonal across levels (across cube) left back to right front, right back to left front, left fron to right back, right front to left front
+    */
+
+    return undefined;
 };
