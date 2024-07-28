@@ -5,126 +5,130 @@ export type Result = {
     winner: PlayerMark;
 };
 
+class Checker {
+    private playground: NullablePlayerMark[];
+    private playgroundSize: number;
+
+    constructor(playground: NullablePlayerMark[], playgroundSize: number) {
+        this.playground = playground;
+        this.playgroundSize = playgroundSize;
+    }
+
+    /**
+     *
+     * @param startIndex - first cell where to start looking for completed line
+     * @param increment - function which returns how much to increment startIndex on each cycle (cycle represents column, row or level depending on direction of looking)
+     * @returns - Result objekt with indexes of winning marks and winner mark
+     */
+    findCompletedLine = (startIndex: number, increment: (cycle: number) => number) => {
+        const mark = this.playground[startIndex];
+        if (mark === null) {
+            return;
+        }
+        const winningMarksIndex: number[] = [];
+        for (let cycle = 0; cycle < this.playgroundSize; cycle++) {
+            const currentIndex = startIndex + increment(cycle);
+            const currentMark = this.playground[currentIndex];
+            if (currentMark === mark) {
+                winningMarksIndex.push(currentIndex);
+            } else {
+                return;
+            }
+        }
+        if (winningMarksIndex.length === this.playgroundSize) {
+            return {
+                winningMarksIndex,
+                winner: mark
+            };
+        }
+    };
+}
+
 export const score = (playground: NullablePlayerMark[], playgroundSize: number) => {
-    /* Look for completed row in level */
+    const checker = new Checker(playground, playgroundSize);
+
+    // Look for completed lines in each level
     for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
+        // Look for completed row in level
         for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
-            const firstMarkInRowIndex = levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize;
-            const firstMarkInRow = playground[firstMarkInRowIndex];
-            if (firstMarkInRow !== null) {
-                const winningMarksIndex: number[] = [];
-                /* Check every column of row if contains equals mark to first mark in row */
-                for (let columnIdx = 0; columnIdx < playgroundSize; columnIdx++) {
-                    const cellIndex = firstMarkInRowIndex + columnIdx;
-                    if (firstMarkInRow !== playground[cellIndex]) {
-                        break;
-                    }
-                    winningMarksIndex.push(cellIndex);
-                }
-                if (winningMarksIndex.length === playgroundSize) {
-                    return {
-                        winningMarksIndex,
-                        winner: firstMarkInRow
-                    };
-                }
+            const result = checker.findCompletedLine(levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize, (cycle) => {
+                return cycle;
+            });
+            if (result) {
+                return result;
             }
         }
-    }
-
-    /* Look for completed columns in level */
-    for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
+        // Look for completed columns in level
         for (let columnIdx = 0; columnIdx < playgroundSize; columnIdx++) {
-            const firstMarkInColumnIndex = levelIdx * playgroundSize * playgroundSize + columnIdx;
-            const firstMarkInColumn = playground[firstMarkInColumnIndex];
-            if (firstMarkInColumn !== null) {
-                const winningMarksIndex: number[] = [];
-                /* Check every row of column if contains equals mark to first mark in column */
-                for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
-                    const cellIndex = firstMarkInColumnIndex + rowIdx * playgroundSize;
-                    if (firstMarkInColumn !== playground[cellIndex]) {
-                        break;
-                    }
-                    winningMarksIndex.push(cellIndex);
-                }
-                if (winningMarksIndex.length === playgroundSize) {
-                    return {
-                        winningMarksIndex,
-                        winner: firstMarkInColumn
-                    };
-                }
+            const result = checker.findCompletedLine(levelIdx * playgroundSize * playgroundSize + columnIdx, (cycle) => {
+                return playgroundSize * cycle;
+            });
+            if (result) {
+                return result;
             }
+        }
+        // Look for completed diagonal in level
+        let result = checker.findCompletedLine(levelIdx * playgroundSize * playgroundSize, (cycle) => {
+            return playgroundSize * cycle + cycle;
+        });
+        if (result) {
+            return result;
+        }
+        result = checker.findCompletedLine(levelIdx * playgroundSize * playgroundSize + (playgroundSize - 1), (cycle) => {
+            return playgroundSize * cycle - cycle;
+        });
+        if (result) {
+            return result;
         }
     }
 
-    /* Look for completed diagonal in level */
-    for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
-        /* Check diagonal from left to right (top to bottom) */
-        const firstMarkInFirstRowIndex = levelIdx * playgroundSize * playgroundSize;
-        const firstMarkInFirstRow = playground[firstMarkInFirstRowIndex];
-        if (firstMarkInFirstRow !== null) {
-            const winningMarksIndex: number[] = [];
-            for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
-                const cellIndex = levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize + rowIdx;
-                if (firstMarkInFirstRow !== playground[cellIndex]) {
-                    break;
-                }
-                winningMarksIndex.push(cellIndex);
-            }
-            if (winningMarksIndex.length === playgroundSize) {
-                return {
-                    winningMarksIndex,
-                    winner: firstMarkInFirstRow
-                };
-            }
-        }
-        /* Check diagonal from right to left (top to bottom) */
-        const lastMarkInFirstRowIndex = levelIdx * playgroundSize * playgroundSize + (playgroundSize - 1);
-        const lastMarkInFirstRow = playground[lastMarkInFirstRowIndex];
-        if (lastMarkInFirstRow !== null) {
-            const winningMarksIndex: number[] = [];
-            for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
-                const cellIndex = levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize + (playgroundSize - 1 - rowIdx);
-                if (lastMarkInFirstRow !== playground[cellIndex]) {
-                    break;
-                }
-                winningMarksIndex.push(cellIndex);
-            }
-            if (winningMarksIndex.length === playgroundSize) {
-                return {
-                    winningMarksIndex,
-                    winner: lastMarkInFirstRow
-                };
-            }
-        }
-    }
-
-    /* Look for completed pillars (same spot across levels) */
-
+    // Look for completed columns across levels
     for (let topLevelCellIdx = 0; topLevelCellIdx < playgroundSize * playgroundSize; topLevelCellIdx++) {
-        const topLevelCellMark = playground[topLevelCellIdx];
-        if (topLevelCellMark !== null) {
-            const winningMarksIndex: number[] = [];
-            for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
-                const cellIndex = levelIdx * playgroundSize * playgroundSize + topLevelCellIdx;
-                if (topLevelCellMark !== playground[cellIndex]) {
-                    break;
-                }
-                winningMarksIndex.push(cellIndex);
-            }
-            if (winningMarksIndex.length === playgroundSize) {
-                return {
-                    winningMarksIndex,
-                    winner: topLevelCellMark
-                };
-            }
+        const result = checker.findCompletedLine(topLevelCellIdx, (cycle) => {
+            return playgroundSize * playgroundSize * cycle;
+        });
+        if (result) {
+            return result;
         }
     }
 
-    /* TODO 
-        All are top to bottom:
-        Look for diagonal across levels left to right, right to left, front to back, back to front
-        Look for diagonal across levels (across cube) left back to right front, right back to left front, left fron to right back, right front to left front
-    */
+    // Look for diagonals across levels
+    for (let columnIdx = 0; columnIdx < playgroundSize; columnIdx++) {
+        // diagonal from top rear to bottom front
+        let result = checker.findCompletedLine(columnIdx, (cycle) => {
+            return playgroundSize * playgroundSize * cycle + cycle * playgroundSize;
+        });
+        if (result) {
+            return result;
+        }
+
+        // diagonal from top front to bottom rear
+        result = checker.findCompletedLine(playgroundSize * (playgroundSize - 1) + columnIdx, (cycle) => {
+            return playgroundSize * playgroundSize * cycle - cycle * playgroundSize;
+        });
+        if (result) {
+            return result;
+        }
+    }
+
+    // Look for diagonals across levels
+    for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
+        // diagonal from top rear to bottom front
+        let result = checker.findCompletedLine(rowIdx * playgroundSize, (cycle) => {
+            return playgroundSize * playgroundSize * cycle + cycle;
+        });
+        if (result) {
+            return result;
+        }
+
+        // diagonal from top front to bottom rear
+        result = checker.findCompletedLine(rowIdx * playgroundSize + (playgroundSize - 1), (cycle) => {
+            return playgroundSize * playgroundSize * cycle - cycle;
+        });
+        if (result) {
+            return result;
+        }
+    }
 
     return undefined;
 };
