@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createContext, PropsWithChildren } from 'react';
 import { DEFAULT_PLAYER, DEFAULT_PLAYGROUND_SIZE } from '../utils/commonConstatns';
 import { Result, score } from '../utils/score';
+import { ErrorCode } from '../utils/errors';
 
 export type PlayerMark = 'x' | 'o';
 export type NullablePlayerMark = PlayerMark | null;
@@ -35,24 +36,23 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
     const markMove = useCallback(
         (index: number) => {
-            try {
-                setPlayground((prev) => {
-                    const res = [...prev];
-                    res.splice(index, 1, activePlayer);
-                    return res;
-                });
-                setActivePlayer((prev) => {
-                    if (prev === 'x') {
-                        return 'o';
-                    } else {
-                        return 'x';
-                    }
-                });
-            } catch (e) {
-                throw new Error('An error occured while making move!');
+            if (playground[index] !== null) {
+                throw new Error(ErrorCode.AlreadyUsed);
             }
+            setPlayground((prev) => {
+                const res = [...prev];
+                res.splice(index, 1, activePlayer);
+                return res;
+            });
+            setActivePlayer((prev) => {
+                if (prev === 'x') {
+                    return 'o';
+                } else {
+                    return 'x';
+                }
+            });
         },
-        [activePlayer]
+        [activePlayer, playground]
     );
 
     const resetPlayground = useCallback(

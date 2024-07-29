@@ -20,7 +20,7 @@ class Checker {
      * @param increment - function which returns how much to increment startIndex on each cycle (cycle represents column, row or level depending on direction of looking)
      * @returns - Result objekt with indexes of winning marks and winner mark
      */
-    findCompletedLine = (startIndex: number, increment: (cycle: number) => number) => {
+    findCompletedLine = (startIndex: number, increment: (cycle: number) => number): Result | undefined => {
         const mark = this.playground[startIndex];
         if (mark === null) {
             return;
@@ -128,6 +128,36 @@ export const score = (playground: NullablePlayerMark[], playgroundSize: number) 
         if (result) {
             return result;
         }
+    }
+
+    // Look for 4 possible diagonals across cube
+
+    let result = checker.findCompletedLine(0, (cycle) => {
+        return playgroundSize * playgroundSize * cycle + cycle * playgroundSize + cycle;
+    });
+    if (result) {
+        return result;
+    }
+
+    result = checker.findCompletedLine(playgroundSize - 1, (cycle) => {
+        return playgroundSize * playgroundSize * cycle + cycle * playgroundSize - cycle;
+    });
+    if (result) {
+        return result;
+    }
+
+    result = checker.findCompletedLine(playgroundSize * playgroundSize - playgroundSize, (cycle) => {
+        return playgroundSize * playgroundSize * cycle - cycle * playgroundSize + cycle;
+    });
+    if (result) {
+        return result;
+    }
+
+    result = checker.findCompletedLine(playgroundSize * playgroundSize - 1, (cycle) => {
+        return playgroundSize * playgroundSize * cycle - cycle * playgroundSize - cycle;
+    });
+    if (result) {
+        return result;
     }
 
     return undefined;
