@@ -3,6 +3,7 @@ import { createContext, PropsWithChildren } from 'react';
 import { DEFAULT_PLAYER, DEFAULT_PLAYGROUND_SIZE } from '../utils/commonConstatns';
 import { Result, score } from '../utils/score';
 import { ErrorCode } from '../utils/errors';
+import { play } from '../utils/computerPlayer';
 
 export type PlayerMark = 'x' | 'o';
 export type NullablePlayerMark = PlayerMark | null;
@@ -72,8 +73,15 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
         const winner = score(playground, playgroundSize);
         if (winner) {
             setResult(winner);
+        } else if (activePlayer === 'o') {
+            const res = play(playground, playgroundSize, 'o');
+            if (res === null) {
+                console.log('No strategy found');
+            } else {
+                markMove(res);
+            }
         }
-    }, [playground, playgroundSize]);
+    }, [activePlayer, markMove, playground, playgroundSize]);
 
     const context: GameContextValue = useMemo(
         () => ({
