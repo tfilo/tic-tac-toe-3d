@@ -48,15 +48,15 @@ const computeMove = (options: {
                         rating[1] += nextMoveRating[1];
                     }
                 }
-                // if (plays === 1) {
-                //     console.log(
-                //         'Completed ' +
-                //             Math.round(
-                //                 (100 / playground.length) * targetCellIdx + ((100 / playground.length) * cellIdx) / playground.length
-                //             ) +
-                //             '%'
-                //     );
-                // }
+                if (plays === 1) {
+                    console.log(
+                        'Completed ' +
+                            Math.round(
+                                (100 / playground.length) * targetCellIdx + ((100 / playground.length) * cellIdx) / playground.length
+                            ) +
+                            '%'
+                    );
+                }
             }
         } else {
             if (res.winner === player) {

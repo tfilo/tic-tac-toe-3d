@@ -21,6 +21,12 @@ type GameContextValue = {
     resetPlayground: (newSize?: number) => void;
     /** Game result with winner and winning marks coordinates */
     result: Result | undefined;
+    /** Change default player */
+    setDefaultPlayer: React.Dispatch<React.SetStateAction<PlayerMark>>;
+    /** Default player */
+    defaultPlayer: PlayerMark;
+    /** Game is in progress */
+    gameInProgress: boolean;
 };
 
 const generatePlayground = (dimension: number): NullablePlayerMark[] => {
@@ -31,9 +37,11 @@ export const GameContext = createContext<GameContextValue>({} as GameContextValu
 
 export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [playground, setPlayground] = useState<NullablePlayerMark[]>(generatePlayground(DEFAULT_PLAYGROUND_SIZE));
-    const [activePlayer, setActivePlayer] = useState<PlayerMark>(DEFAULT_PLAYER);
+    const [defaultPlayer, setDefaultPlayer] = useState<PlayerMark>(DEFAULT_PLAYER);
+    const [activePlayer, setActivePlayer] = useState<PlayerMark>(defaultPlayer);
     const [result, setResult] = useState<Result>();
     const playgroundSize = Math.cbrt(playground.length);
+    const gameInProgress = playground.some((cell) => cell !== null);
 
     const markMove = useCallback(
         (index: number) => {
@@ -65,9 +73,14 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
             }
             setResult(undefined);
             setActivePlayer(DEFAULT_PLAYER);
+            setDefaultPlayer(DEFAULT_PLAYER);
         },
         [playgroundSize]
     );
+
+    useEffect(() => {
+        setActivePlayer(defaultPlayer);
+    }, [defaultPlayer, resetPlayground]);
 
     useEffect(() => {
         const winner = score(playground, playgroundSize);
@@ -90,9 +103,12 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
             activePlayer,
             markMove,
             resetPlayground,
-            result
+            result,
+            setDefaultPlayer,
+            defaultPlayer,
+            gameInProgress
         }),
-        [activePlayer, markMove, playground, playgroundSize, resetPlayground, result]
+        [activePlayer, defaultPlayer, gameInProgress, markMove, playground, playgroundSize, resetPlayground, result]
     );
 
     return <GameContext.Provider value={context}>{children}</GameContext.Provider>;
