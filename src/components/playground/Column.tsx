@@ -16,7 +16,7 @@ const Column: React.FC<ColumnProps> = ({ columnIdx, levelIdx, rowIdx }) => {
     const markIndex = playgroundSize * playgroundSize * levelIdx + playgroundSize * rowIdx + columnIdx;
     const mark = playground[markIndex];
     const hasWinner = !!result;
-    const isWinnerCell = result?.winningMarksIndex.includes(markIndex);
+    const isWinnerCell = result?.winningMarks.includes(markIndex);
 
     const onMarkHandler = useCallback(() => {
         try {

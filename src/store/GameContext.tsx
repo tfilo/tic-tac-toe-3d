@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createContext, PropsWithChildren } from 'react';
 import { DEFAULT_PLAYER, DEFAULT_PLAYGROUND_SIZE } from '../utils/commonConstatns';
-import { Result, score } from '../utils/score';
+import { ScoreResult, score } from '../utils/score';
 import { ErrorCode } from '../utils/errors';
 import { play } from '../utils/computerPlayer';
 
@@ -20,7 +20,7 @@ type GameContextValue = {
     /** Resets playground, optionaly change to different size */
     resetPlayground: (newSize?: number) => void;
     /** Game result with winner and winning marks coordinates */
-    result: Result | undefined;
+    result: ScoreResult | undefined;
     /** Change default player */
     setDefaultPlayer: React.Dispatch<React.SetStateAction<PlayerMark>>;
     /** Default player */
@@ -39,7 +39,7 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [playground, setPlayground] = useState<NullablePlayerMark[]>(generatePlayground(DEFAULT_PLAYGROUND_SIZE));
     const [defaultPlayer, setDefaultPlayer] = useState<PlayerMark>(DEFAULT_PLAYER);
     const [activePlayer, setActivePlayer] = useState<PlayerMark>(defaultPlayer);
-    const [result, setResult] = useState<Result>();
+    const [result, setResult] = useState<ScoreResult>();
     const playgroundSize = Math.cbrt(playground.length);
     const gameInProgress = playground.some((cell) => cell !== null);
 
@@ -83,9 +83,15 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
     }, [defaultPlayer, resetPlayground]);
 
     useEffect(() => {
-        const winner = score(playground, playgroundSize);
-        if (winner) {
-            setResult(winner);
+        const resultO = score('o', playground, playgroundSize);
+        const resultX = score('x', playground, playgroundSize);
+
+        console.log(`Score O: ${resultO.score}; Score X: ${resultX.score}`);
+
+        if (resultO.winningMarks.length > 0) {
+            setResult(resultO);
+        } else if (resultX.winningMarks.length > 0) {
+            setResult(resultX);
         } else if (activePlayer === 'o') {
             const res = play(playground, playgroundSize, 'o');
             if (res === null) {

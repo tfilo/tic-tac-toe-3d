@@ -1,9 +1,11 @@
 import { NullablePlayerMark, PlayerMark } from '../store/GameContext';
 
-export type Result = {
-    winningMarksIndex: number[];
-    winner: PlayerMark;
+type LineResult = {
+    score: number;
+    winningMarks: number[];
 };
+
+export type ScoreResult = LineResult;
 
 class Checker {
     private playground: NullablePlayerMark[];
@@ -20,145 +22,141 @@ class Checker {
      * @param increment - function which returns how much to increment startIndex on each cycle (cycle represents column, row or level depending on direction of looking)
      * @returns - Result objekt with indexes of winning marks and winner mark
      */
-    findCompletedLine = (startIndex: number, increment: (cycle: number) => number): Result | undefined => {
-        const mark = this.playground[startIndex];
-        if (mark === null) {
-            return;
-        }
-        const winningMarksIndex: number[] = [];
+    findCompletedLine = (player: PlayerMark, startIndex: number, increment: (cycle: number) => number): LineResult => {
+        const winningMarks: number[] = [];
+        let score = 0;
         for (let cycle = 0; cycle < this.playgroundSize; cycle++) {
             const currentIndex = startIndex + increment(cycle);
             const currentMark = this.playground[currentIndex];
-            if (currentMark === mark) {
-                winningMarksIndex.push(currentIndex);
-            } else {
-                return;
+            if (currentMark === null) {
+                continue;
             }
+            if (currentMark !== player) {
+                return {
+                    score: 0,
+                    winningMarks: []
+                };
+            }
+            score++;
+            winningMarks.push(currentIndex);
         }
-        if (winningMarksIndex.length === this.playgroundSize) {
-            return {
-                winningMarksIndex,
-                winner: mark
-            };
-        }
+        return {
+            score,
+            winningMarks: winningMarks.length === this.playgroundSize ? winningMarks : []
+        };
     };
 }
 
-export const score = (playground: NullablePlayerMark[], playgroundSize: number) => {
+export const score = (player: PlayerMark, playground: NullablePlayerMark[], playgroundSize: number): ScoreResult => {
     const checker = new Checker(playground, playgroundSize);
-
+    const winningMarks: Set<number> = new Set();
+    let score = 0;
     // Look for completed lines in each level
     for (let levelIdx = 0; levelIdx < playgroundSize; levelIdx++) {
         // Look for completed row in level
         for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
-            const result = checker.findCompletedLine(levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize, (cycle) => {
-                return cycle;
-            });
-            if (result) {
-                return result;
-            }
+            const result = checker.findCompletedLine(
+                player,
+                levelIdx * playgroundSize * playgroundSize + rowIdx * playgroundSize,
+                (cycle) => {
+                    return cycle;
+                }
+            );
+            score += result.score;
+            result.winningMarks.forEach((wm) => winningMarks.add(wm));
         }
         // Look for completed columns in level
         for (let columnIdx = 0; columnIdx < playgroundSize; columnIdx++) {
-            const result = checker.findCompletedLine(levelIdx * playgroundSize * playgroundSize + columnIdx, (cycle) => {
+            const result = checker.findCompletedLine(player, levelIdx * playgroundSize * playgroundSize + columnIdx, (cycle) => {
                 return playgroundSize * cycle;
             });
-            if (result) {
-                return result;
-            }
+            score += result.score;
+            result.winningMarks.forEach((wm) => winningMarks.add(wm));
         }
         // Look for completed diagonal in level
-        let result = checker.findCompletedLine(levelIdx * playgroundSize * playgroundSize, (cycle) => {
+        let result = checker.findCompletedLine(player, levelIdx * playgroundSize * playgroundSize, (cycle) => {
             return playgroundSize * cycle + cycle;
         });
-        if (result) {
-            return result;
-        }
-        result = checker.findCompletedLine(levelIdx * playgroundSize * playgroundSize + (playgroundSize - 1), (cycle) => {
+        score += result.score;
+        result.winningMarks.forEach((wm) => winningMarks.add(wm));
+        result = checker.findCompletedLine(player, levelIdx * playgroundSize * playgroundSize + (playgroundSize - 1), (cycle) => {
             return playgroundSize * cycle - cycle;
         });
-        if (result) {
-            return result;
-        }
+        score += result.score;
+        result.winningMarks.forEach((wm) => winningMarks.add(wm));
     }
 
     // Look for completed columns across levels
     for (let topLevelCellIdx = 0; topLevelCellIdx < playgroundSize * playgroundSize; topLevelCellIdx++) {
-        const result = checker.findCompletedLine(topLevelCellIdx, (cycle) => {
+        const result = checker.findCompletedLine(player, topLevelCellIdx, (cycle) => {
             return playgroundSize * playgroundSize * cycle;
         });
-        if (result) {
-            return result;
-        }
+        score += result.score;
+        result.winningMarks.forEach((wm) => winningMarks.add(wm));
     }
 
     // Look for diagonals across levels
     for (let columnIdx = 0; columnIdx < playgroundSize; columnIdx++) {
         // diagonal from top rear to bottom front
-        let result = checker.findCompletedLine(columnIdx, (cycle) => {
+        let result = checker.findCompletedLine(player, columnIdx, (cycle) => {
             return playgroundSize * playgroundSize * cycle + cycle * playgroundSize;
         });
-        if (result) {
-            return result;
-        }
+        score += result.score;
+        result.winningMarks.forEach((wm) => winningMarks.add(wm));
 
         // diagonal from top front to bottom rear
-        result = checker.findCompletedLine(playgroundSize * (playgroundSize - 1) + columnIdx, (cycle) => {
+        result = checker.findCompletedLine(player, playgroundSize * (playgroundSize - 1) + columnIdx, (cycle) => {
             return playgroundSize * playgroundSize * cycle - cycle * playgroundSize;
         });
-        if (result) {
-            return result;
-        }
+        score += result.score;
+        result.winningMarks.forEach((wm) => winningMarks.add(wm));
     }
 
     // Look for diagonals across levels
     for (let rowIdx = 0; rowIdx < playgroundSize; rowIdx++) {
         // diagonal from top rear to bottom front
-        let result = checker.findCompletedLine(rowIdx * playgroundSize, (cycle) => {
+        let result = checker.findCompletedLine(player, rowIdx * playgroundSize, (cycle) => {
             return playgroundSize * playgroundSize * cycle + cycle;
         });
-        if (result) {
-            return result;
-        }
+        score += result.score;
+        result.winningMarks.forEach((wm) => winningMarks.add(wm));
 
         // diagonal from top front to bottom rear
-        result = checker.findCompletedLine(rowIdx * playgroundSize + (playgroundSize - 1), (cycle) => {
+        result = checker.findCompletedLine(player, rowIdx * playgroundSize + (playgroundSize - 1), (cycle) => {
             return playgroundSize * playgroundSize * cycle - cycle;
         });
-        if (result) {
-            return result;
-        }
+        score += result.score;
+        result.winningMarks.forEach((wm) => winningMarks.add(wm));
     }
 
     // Look for 4 possible diagonals across cube
 
-    let result = checker.findCompletedLine(0, (cycle) => {
+    let result = checker.findCompletedLine(player, 0, (cycle) => {
         return playgroundSize * playgroundSize * cycle + cycle * playgroundSize + cycle;
     });
-    if (result) {
-        return result;
-    }
+    score += result.score;
+    result.winningMarks.forEach((wm) => winningMarks.add(wm));
 
-    result = checker.findCompletedLine(playgroundSize - 1, (cycle) => {
+    result = checker.findCompletedLine(player, playgroundSize - 1, (cycle) => {
         return playgroundSize * playgroundSize * cycle + cycle * playgroundSize - cycle;
     });
-    if (result) {
-        return result;
-    }
+    score += result.score;
+    result.winningMarks.forEach((wm) => winningMarks.add(wm));
 
-    result = checker.findCompletedLine(playgroundSize * playgroundSize - playgroundSize, (cycle) => {
+    result = checker.findCompletedLine(player, playgroundSize * playgroundSize - playgroundSize, (cycle) => {
         return playgroundSize * playgroundSize * cycle - cycle * playgroundSize + cycle;
     });
-    if (result) {
-        return result;
-    }
+    score += result.score;
+    result.winningMarks.forEach((wm) => winningMarks.add(wm));
 
-    result = checker.findCompletedLine(playgroundSize * playgroundSize - 1, (cycle) => {
+    result = checker.findCompletedLine(player, playgroundSize * playgroundSize - 1, (cycle) => {
         return playgroundSize * playgroundSize * cycle - cycle * playgroundSize - cycle;
     });
-    if (result) {
-        return result;
-    }
+    score += result.score;
+    result.winningMarks.forEach((wm) => winningMarks.add(wm));
 
-    return undefined;
+    return {
+        score,
+        winningMarks: Array.from(winningMarks)
+    };
 };

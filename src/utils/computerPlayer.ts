@@ -1,7 +1,7 @@
 import { NullablePlayerMark, PlayerMark } from '../store/GameContext';
 import { score } from './score';
 
-type WinLose = [wins: number, loses: number];
+type PlayersScore = [playerScore: number, oponentScore: number];
 
 const nextPlayer = (player: PlayerMark): PlayerMark => {
     if (player === 'x') {
@@ -18,19 +18,22 @@ const computeMove = (options: {
     playerOnTurn: PlayerMark;
     targetCellIdx: number;
     plays: number;
-}): WinLose | null => {
+}): PlayersScore | null => {
     const { playground, playgroundSize, player, playerOnTurn, targetCellIdx, plays } = options;
-    if (plays === playgroundSize * 2 - 1) {
+    if (plays > 1) {
         // Depth control
         return null;
     }
-    let rating: WinLose | null = null;
+    const playersScore: PlayersScore = [0, 0];
     const _playground = [...playground]; // copy playground to prevent modifying original array
     if (_playground[targetCellIdx] === null) {
-        _playground[targetCellIdx] = playerOnTurn;
-        const res = score(_playground, playgroundSize);
-        if (res === undefined) {
-            // go deeper
+        _playground[targetCellIdx] = player;
+        let { score: playerScore, winningMarks: playerWinningMarks } = score(player, _playground, playgroundSize);
+        let { score: oponentScore, winningMarks: oponentWinningMarks } = score(nextPlayer(player), _playground, playgroundSize);
+        playersScore[0] += playerScore;
+        playersScore[1] += oponentScore;
+        if (playerWinningMarks.length === 0 && oponentWinningMarks.length === 0) {
+            // If no winner yet, play one more
             for (let cellIdx = 0; cellIdx < _playground.length; cellIdx++) {
                 const nextMoveRating = computeMove({
                     playground: _playground,
@@ -41,41 +44,29 @@ const computeMove = (options: {
                     plays: plays + 1
                 });
                 if (nextMoveRating !== null) {
-                    if (rating === null) {
-                        rating = nextMoveRating;
-                    } else {
-                        rating[0] += nextMoveRating[0];
-                        rating[1] += nextMoveRating[1];
-                    }
-                }
-                if (plays === 1) {
-                    console.log(
-                        'Completed ' +
-                            Math.round(
-                                (100 / playground.length) * targetCellIdx + ((100 / playground.length) * cellIdx) / playground.length
-                            ) +
-                            '%'
-                    );
+                    playersScore[0] += nextMoveRating[0];
+                    playersScore[1] += nextMoveRating[1];
                 }
             }
         } else {
-            if (res.winner === player) {
-                return [1, 0];
-            } else {
-                return [0, 1];
+            if (playerWinningMarks.length > 0) {
+                return [Number.MAX_SAFE_INTEGER, oponentScore];
+            }
+            if (oponentWinningMarks.length > 0) {
+                return [playerScore, Number.MAX_SAFE_INTEGER];
             }
         }
-        return rating;
+        return playersScore;
     }
     return null;
 };
 
 export const play = (playground: NullablePlayerMark[], playgroundSize: number, player: PlayerMark): number | null => {
-    const moveRatings: [cellIdx: number, rating: WinLose][] = [];
-    for (let cellIdx = 0; cellIdx < playground.length; cellIdx++) {
-        const rating = computeMove({ playground, playgroundSize, player, playerOnTurn: player, targetCellIdx: cellIdx, plays: 1 });
+    const moveRatings: [cellIdx: number, rating: PlayersScore][] = [];
+    for (let targetCellIdx = 0; targetCellIdx < playground.length; targetCellIdx++) {
+        const rating = computeMove({ playground, playgroundSize, player, playerOnTurn: nextPlayer(player), targetCellIdx, plays: 0 });
         if (rating !== null) {
-            moveRatings.push([cellIdx, rating]);
+            moveRatings.push([targetCellIdx, rating]);
         }
     }
     const nextMove = moveRatings
