@@ -18,9 +18,10 @@ class Checker {
 
     /**
      *
-     * @param startIndex - first cell where to start looking for completed line
-     * @param increment - function which returns how much to increment startIndex on each cycle (cycle represents column, row or level depending on direction of looking)
-     * @returns - Result objekt with indexes of winning marks and winner mark
+     * @param player - Player of which score should be calculated.
+     * @param startIndex - First cell where to start looking for completed line.
+     * @param increment - Function which returns how much to increment startIndex on each cycle (cycle represents column, row or level depending on direction of looking).
+     * @returns - Result objekt with indexes of winning marks and winner score.
      */
     findCompletedLine = (player: PlayerMark, startIndex: number, increment: (cycle: number) => number): LineResult => {
         const winningMarks: number[] = [];

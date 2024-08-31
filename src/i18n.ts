@@ -9,7 +9,7 @@ const resources = {
             },
             controls: {
                 newGame: 'New game',
-                playgroundDimension: 'Playground dimension',
+                playgroundDimension: 'Playground dimension from {{from}} to {{to}}',
                 firstPlayer: 'First player',
                 cpu: 'CPU',
                 person: 'Person',
@@ -22,7 +22,8 @@ const resources = {
             result: {
                 winner: 'Winner',
                 confirm: 'Ok'
-            }
+            },
+            github: 'Github repository'
         }
     },
     sk: {
@@ -32,7 +33,7 @@ const resources = {
             },
             controls: {
                 newGame: 'Nová hra',
-                playgroundDimension: 'Rozmer hracej plochy',
+                playgroundDimension: 'Rozmer hracej plochy od {{from}} do {{to}}',
                 firstPlayer: 'Začínajúci hráč',
                 cpu: 'Počítač',
                 person: 'Osoba',
@@ -43,9 +44,10 @@ const resources = {
                 sk: 'Slovenčina'
             },
             result: {
-                winner: 'Výťaz',
+                winner: 'Víťaz',
                 confirm: 'Ok'
-            }
+            },
+            github: 'Github repozitár'
         }
     }
 };

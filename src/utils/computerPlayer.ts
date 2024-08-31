@@ -66,6 +66,7 @@ export const play = async (playground: NullablePlayerMark[], playgroundSize: num
 
     for (let targetCellIdx = 0; targetCellIdx < playground.length; targetCellIdx++) {
         const result = await new Promise<[cellIdx: number, rating: PlayersScore] | null>((resolve) => {
+            // Making this part asynchronous with 1ms timeout prevents GUI freezing while calculating move.
             setTimeout(() => {
                 const rating = computeMove({
                     playground,

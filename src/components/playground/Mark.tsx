@@ -1,5 +1,7 @@
 import React from 'react';
 import { PlayerMark } from '../../store/GameContext';
+import x from '../../assets/x.png';
+import o from '../../assets/o.png';
 
 type MarkProps = {
     mark: PlayerMark | null;
@@ -8,11 +10,11 @@ type MarkProps = {
 
 const Mark: React.FC<MarkProps> = ({ mark, size = 'normal' }) => {
     if (mark === 'x') {
-        return <div className={`text-red-600 font-bold ${size === 'large' ? 'text-5xl' : 'text-2xl'}`}>{mark}</div>;
+        return <img src={x} alt={'x'} className={size === 'large' ? 'w-8 h-8 mx-auto' : 'w-5 h-5 mx-auto'} />;
     }
 
     if (mark === 'o') {
-        return <div className={`text-blue-600 font-bold ${size === 'large' ? 'text-5xl' : 'text-2xl'}`}>{mark}</div>;
+        return <img src={o} alt={'o'} className={size === 'large' ? 'w-8 h-8 mx-auto' : 'w-5 h-5 mx-auto'} />;
     }
 
     return null;
