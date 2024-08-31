@@ -18,7 +18,7 @@ const Game: React.FC = () => {
 
     return (
         <GameProvider>
-            <div className='w-full h-full pl-72 min-w-[640px]'>
+            <div className='w-full h-full sm:pl-72 pl-0 min-w-96'>
                 <Header />
                 <Controls />
                 <Playground />

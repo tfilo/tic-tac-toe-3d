@@ -1,5 +1,6 @@
 | Name                                              | License type | Link                                                             | Installed version | Author                                                               |
 | :------------------------------------------------ | :----------- | :--------------------------------------------------------------- | :---------------- | :------------------------------------------------------------------- |
+| @heroicons/react                                  | MIT          | git+https://github.com/tailwindlabs/heroicons.git                | 2.1.5             | n/a                                                                  |
 | @testing-library/jest-dom                         | MIT          | git+https://github.com/testing-library/jest-dom.git              | 5.17.0            | Ernesto Garcia <gnapse@gmail.com> (http://gnapse.github.io)          |
 | @testing-library/react                            | MIT          | git+https://github.com/testing-library/react-testing-library.git | 13.4.0            | Kent C. Dodds <me@kentcdodds.com> (https://kentcdodds.com)           |
 | @testing-library/user-event                       | MIT          | git+https://github.com/testing-library/user-event.git            | 13.5.0            | Giorgio Polvara <polvara@gmail.com>                                  |

@@ -1,11 +1,13 @@
-import React, { useCallback, useContext, useId } from 'react';
+import React, { useCallback, useContext, useId, useState } from 'react';
 import { GameContext } from '../../store/GameContext';
 import Mark from '../playground/Mark';
 import { MAX_PLAYGROUND_SIZE, MIN_PLAYGROUND_SIZE } from '../../utils/commonConstatns';
 import { useTranslation } from 'react-i18next';
+import { ArrowPathIcon, Bars3Icon, PlayIcon } from '@heroicons/react/24/outline';
+import useSmBreakPoint from '../../hooks/useSmBreakPoint';
 
 const Controls: React.FC = () => {
-    const { playgroundSize, activePlayer, resetPlayground, defaultPlayer, setDefaultPlayer, gameInProgress, isWorking } =
+    const { playgroundSize, activePlayer, resetPlayground, defaultPlayer, setDefaultPlayer, setGameInProgress, gameInProgress, isWorking } =
         useContext(GameContext);
     const id = useId();
     const {
@@ -16,6 +18,8 @@ const Controls: React.FC = () => {
             options: { resources }
         }
     } = useTranslation();
+    const isSmall = useSmBreakPoint();
+    const [isMenuVisible, setIsMenuVisible] = useState(true);
 
     const setNewSize = useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -33,14 +37,50 @@ const Controls: React.FC = () => {
         [resetPlayground]
     );
 
+    if (!isMenuVisible && isSmall) {
+        return (
+            <div className='absolute top-0 left-0 p-4'>
+                <button className='sm:hidden visible'>
+                    <Bars3Icon
+                        className='size-8 text-gray-500 hover:text-blue-600'
+                        onClick={() => setIsMenuVisible(true)}
+                        title={t('openMenu')}
+                    />
+                </button>
+            </div>
+        );
+    }
+
     return (
-        <aside className='absolute top-0 left-0 w-72 min-h-full border-r flex flex-col text-center gap-4 p-4'>
-            <button
-                className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg h-16'
-                onClick={(e) => resetPlayground()}
-            >
-                {t('controls.newGame')}
+        <aside className='absolute top-0 left-0 bg-white z-40 sm:w-72 w-full min-h-full border-r flex flex-col text-center gap-4 p-4'>
+            <button className='sm:hidden visible'>
+                <Bars3Icon
+                    className='size-8 text-blue-400 hover:text-blue-600'
+                    onClick={() => setIsMenuVisible(false)}
+                    title={t('closeMenu')}
+                />
             </button>
+            {!gameInProgress && (
+                <button
+                    className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg h-16'
+                    onClick={() => {
+                        setGameInProgress(true);
+                        setIsMenuVisible(false);
+                    }}
+                >
+                    <PlayIcon className='size-5 inline-block mr-2' />
+                    {t('controls.start')}
+                </button>
+            )}
+            {gameInProgress && (
+                <button
+                    className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg h-16'
+                    onClick={() => resetPlayground()}
+                >
+                    <ArrowPathIcon className='size-5 inline-block mr-2' />
+                    {t('controls.restart')}
+                </button>
+            )}
             <div className='border-b pb-4'>
                 <label htmlFor={`playgroundSize_${id}`} className='block text-gray-700 text-sm font-bold mb-2'>
                     {t('controls.playgroundDimension', {
@@ -77,9 +117,11 @@ const Controls: React.FC = () => {
                             name='firstPlayer'
                             id={`cpu_${id}`}
                             checked={defaultPlayer === 'o'}
-                            onChange={() => setDefaultPlayer('o')}
+                            onChange={() => {
+                                setDefaultPlayer('o');
+                            }}
                             disabled={gameInProgress}
-                            className='w-6 h-6 cursor-pointer'
+                            className='w-6 h-6 cursor-pointer disabled:cursor-default'
                         />
                     </div>
                     <div className='flex-1 flex flex-col gap-4 justify-center items-center hover:bg-slate-100 py-2 rounded-lg'>
@@ -94,7 +136,7 @@ const Controls: React.FC = () => {
                             checked={defaultPlayer === 'x'}
                             onChange={() => setDefaultPlayer('x')}
                             disabled={gameInProgress}
-                            className='w-6 h-6 cursor-pointer'
+                            className='w-6 h-6 cursor-pointer disabled:cursor-default'
                         />
                     </div>
                 </div>

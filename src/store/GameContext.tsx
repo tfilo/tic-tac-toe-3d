@@ -27,6 +27,8 @@ type GameContextValue = {
     defaultPlayer: PlayerMark;
     /** Game is in progress */
     gameInProgress: boolean;
+    /**Set game in progress */
+    setGameInProgress: React.Dispatch<React.SetStateAction<boolean>>;
     /** Computer is computing next move */
     isWorking: boolean;
 };
@@ -43,28 +45,30 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [activePlayer, setActivePlayer] = useState<PlayerMark>(defaultPlayer);
     const [result, setResult] = useState<ScoreResult>();
     const playgroundSize = Math.cbrt(playground.length);
-    const gameInProgress = playground.some((cell) => cell !== null);
+    const [gameInProgress, setGameInProgress] = useState(false);
     const [isWorking, setIsWorking] = useState(false);
 
     const markMove = useCallback(
         (index: number) => {
-            if (playground[index] !== null) {
-                throw new Error(ErrorCode.AlreadyUsed);
-            }
-            setPlayground((prev) => {
-                const res = [...prev];
-                res.splice(index, 1, activePlayer);
-                return res;
-            });
-            setActivePlayer((prev) => {
-                if (prev === 'x') {
-                    return 'o';
-                } else {
-                    return 'x';
+            if (gameInProgress) {
+                if (playground[index] !== null) {
+                    throw new Error(ErrorCode.AlreadyUsed);
                 }
-            });
+                setPlayground((prev) => {
+                    const res = [...prev];
+                    res.splice(index, 1, activePlayer);
+                    return res;
+                });
+                setActivePlayer((prev) => {
+                    if (prev === 'x') {
+                        return 'o';
+                    } else {
+                        return 'x';
+                    }
+                });
+            }
         },
-        [activePlayer, playground]
+        [activePlayer, gameInProgress, playground]
     );
 
     const resetPlayground = useCallback(
@@ -75,10 +79,10 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
                 setPlayground(generatePlayground(playgroundSize));
             }
             setResult(undefined);
-            setActivePlayer(DEFAULT_PLAYER);
-            setDefaultPlayer(DEFAULT_PLAYER);
+            setActivePlayer(defaultPlayer);
+            setGameInProgress(false);
         },
-        [playgroundSize]
+        [defaultPlayer, playgroundSize]
     );
 
     useEffect(() => {
@@ -86,27 +90,29 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
     }, [defaultPlayer, resetPlayground]);
 
     useEffect(() => {
-        setIsWorking(true);
-        (async () => {
-            const resultO = score('o', playground, playgroundSize);
-            const resultX = score('x', playground, playgroundSize);
+        if (gameInProgress) {
+            setIsWorking(true);
+            (async () => {
+                const resultO = score('o', playground, playgroundSize);
+                const resultX = score('x', playground, playgroundSize);
 
-            if (resultO.winningMarks.length > 0) {
-                setResult(resultO);
-            } else if (resultX.winningMarks.length > 0) {
-                setResult(resultX);
-            } else if (activePlayer === 'o') {
-                const res = await play(playground, playgroundSize, 'o');
-                if (res === null) {
-                    console.log('No strategy found');
-                } else {
-                    markMove(res);
+                if (resultO.winningMarks.length > 0) {
+                    setResult(resultO);
+                } else if (resultX.winningMarks.length > 0) {
+                    setResult(resultX);
+                } else if (activePlayer === 'o') {
+                    const res = await play(playground, playgroundSize, 'o');
+                    if (res === null) {
+                        console.log('No strategy found');
+                    } else {
+                        markMove(res);
+                    }
                 }
-            }
-        })().finally(() => {
-            setIsWorking(false);
-        });
-    }, [activePlayer, markMove, playground, playgroundSize]);
+            })().finally(() => {
+                setIsWorking(false);
+            });
+        }
+    }, [activePlayer, markMove, playground, playgroundSize, gameInProgress]);
 
     const context: GameContextValue = useMemo(
         () => ({
@@ -118,6 +124,7 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
             result,
             setDefaultPlayer,
             defaultPlayer,
+            setGameInProgress,
             gameInProgress,
             isWorking
         }),

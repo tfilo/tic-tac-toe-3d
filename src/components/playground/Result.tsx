@@ -26,7 +26,7 @@ const Result: React.FC = () => {
                     <h1 className='text-4xl font-bold pb-4'>{t('result.winner')}</h1>
                     <Mark mark={playground[result.winningMarks[0]]} size='large' />
                 </div>
-                <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg' onClick={() => setIsOpen(false)}>
+                <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg h-16' onClick={() => setIsOpen(false)}>
                     {t('result.confirm')}
                 </button>
             </div>

@@ -8,7 +8,8 @@ const resources = {
                 title: 'Tic-Tac-Toe 3D'
             },
             controls: {
-                newGame: 'New game',
+                restart: 'Restart game',
+                start: 'Start game',
                 playgroundDimension: 'Playground dimension from {{from}} to {{to}}',
                 firstPlayer: 'First player',
                 cpu: 'CPU',
@@ -23,7 +24,9 @@ const resources = {
                 winner: 'Winner',
                 confirm: 'Ok'
             },
-            github: 'Github repository'
+            github: 'Github repository',
+            openMenu: 'Open menu',
+            closeMenu: 'Close menu'
         }
     },
     sk: {
@@ -32,7 +35,8 @@ const resources = {
                 title: 'Piškôrky 3D'
             },
             controls: {
-                newGame: 'Nová hra',
+                restart: 'Reštartovať hru',
+                start: 'Začať hru',
                 playgroundDimension: 'Rozmer hracej plochy od {{from}} do {{to}}',
                 firstPlayer: 'Začínajúci hráč',
                 cpu: 'Počítač',
@@ -47,7 +51,9 @@ const resources = {
                 winner: 'Víťaz',
                 confirm: 'Ok'
             },
-            github: 'Github repozitár'
+            github: 'Github repozitár',
+            openMenu: 'Otvoriť menu',
+            closeMenu: 'Zatvoriť menu'
         }
     }
 };
