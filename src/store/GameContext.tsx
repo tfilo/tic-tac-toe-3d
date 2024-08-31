@@ -27,6 +27,8 @@ type GameContextValue = {
     defaultPlayer: PlayerMark;
     /** Game is in progress */
     gameInProgress: boolean;
+    /** Computer is computing next move */
+    isWorking: boolean;
 };
 
 const generatePlayground = (dimension: number): NullablePlayerMark[] => {
@@ -42,6 +44,7 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [result, setResult] = useState<ScoreResult>();
     const playgroundSize = Math.cbrt(playground.length);
     const gameInProgress = playground.some((cell) => cell !== null);
+    const [isWorking, setIsWorking] = useState(false);
 
     const markMove = useCallback(
         (index: number) => {
@@ -83,23 +86,26 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
     }, [defaultPlayer, resetPlayground]);
 
     useEffect(() => {
-        const resultO = score('o', playground, playgroundSize);
-        const resultX = score('x', playground, playgroundSize);
+        setIsWorking(true);
+        (async () => {
+            const resultO = score('o', playground, playgroundSize);
+            const resultX = score('x', playground, playgroundSize);
 
-        console.log(`Score O: ${resultO.score}; Score X: ${resultX.score}`);
-
-        if (resultO.winningMarks.length > 0) {
-            setResult(resultO);
-        } else if (resultX.winningMarks.length > 0) {
-            setResult(resultX);
-        } else if (activePlayer === 'o') {
-            const res = play(playground, playgroundSize, 'o');
-            if (res === null) {
-                console.log('No strategy found');
-            } else {
-                markMove(res);
+            if (resultO.winningMarks.length > 0) {
+                setResult(resultO);
+            } else if (resultX.winningMarks.length > 0) {
+                setResult(resultX);
+            } else if (activePlayer === 'o') {
+                const res = await play(playground, playgroundSize, 'o');
+                if (res === null) {
+                    console.log('No strategy found');
+                } else {
+                    markMove(res);
+                }
             }
-        }
+        })().finally(() => {
+            setIsWorking(false);
+        });
     }, [activePlayer, markMove, playground, playgroundSize]);
 
     const context: GameContextValue = useMemo(
@@ -112,9 +118,10 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
             result,
             setDefaultPlayer,
             defaultPlayer,
-            gameInProgress
+            gameInProgress,
+            isWorking
         }),
-        [activePlayer, defaultPlayer, gameInProgress, markMove, playground, playgroundSize, resetPlayground, result]
+        [activePlayer, defaultPlayer, gameInProgress, markMove, playground, playgroundSize, resetPlayground, result, isWorking]
     );
 
     return <GameContext.Provider value={context}>{children}</GameContext.Provider>;

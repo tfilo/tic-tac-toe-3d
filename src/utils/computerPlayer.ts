@@ -61,14 +61,32 @@ const computeMove = (options: {
     return null;
 };
 
-export const play = (playground: NullablePlayerMark[], playgroundSize: number, player: PlayerMark): number | null => {
+export const play = async (playground: NullablePlayerMark[], playgroundSize: number, player: PlayerMark): Promise<number | null> => {
     const moveRatings: [cellIdx: number, rating: PlayersScore][] = [];
+
     for (let targetCellIdx = 0; targetCellIdx < playground.length; targetCellIdx++) {
-        const rating = computeMove({ playground, playgroundSize, player, playerOnTurn: nextPlayer(player), targetCellIdx, plays: 0 });
-        if (rating !== null) {
-            moveRatings.push([targetCellIdx, rating]);
+        const result = await new Promise<[cellIdx: number, rating: PlayersScore] | null>((resolve) => {
+            setTimeout(() => {
+                const rating = computeMove({
+                    playground,
+                    playgroundSize,
+                    player,
+                    playerOnTurn: nextPlayer(player),
+                    targetCellIdx,
+                    plays: 0
+                });
+                if (rating !== null) {
+                    resolve([targetCellIdx, rating]);
+                } else {
+                    resolve(null);
+                }
+            }, 1);
+        });
+        if (result !== null) {
+            moveRatings.push(result);
         }
     }
+
     const nextMove = moveRatings
         .sort((a, b) => {
             const result = a[1][1] - b[1][1];

@@ -1,9 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Header: React.FC = () => {
+    const { t } = useTranslation();
+
     return (
         <header className='text-center p-4'>
-            <h1 className='text-3xl font-bold'>Tic-Tac-Toe 3D</h1>
+            <h1 className='text-3xl font-bold'>{t('header.title')}</h1>
         </header>
     );
 };

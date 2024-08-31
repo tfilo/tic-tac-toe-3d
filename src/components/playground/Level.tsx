@@ -7,11 +7,11 @@ type LevelProsp = {
 };
 
 const Level: React.FC<LevelProsp> = ({ levelIdx }) => {
-    const { playgroundSize } = useContext(GameContext);
+    const { playgroundSize, isWorking } = useContext(GameContext);
 
     return (
         <section
-            className='flex justify-center level-wrapper'
+            className={`flex justify-center level-wrapper ${isWorking && ' pointer-events-none'}`}
             style={{
                 height: `${32 * playgroundSize}px`
             }}

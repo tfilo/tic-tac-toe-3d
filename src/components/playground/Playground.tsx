@@ -1,16 +1,20 @@
 import React, { useContext } from 'react';
 import { GameContext } from '../../store/GameContext';
 import Level from './Level';
+import Result from './Result';
 
 const Playground: React.FC = () => {
-    const { playgroundSize } = useContext(GameContext);
+    const { playgroundSize, isWorking } = useContext(GameContext);
 
     return (
-        <main className='px-4 flex flex-col justify-center'>
-            {new Array(playgroundSize).fill(null).map((_, levelIdx) => {
-                return <Level key={levelIdx} levelIdx={levelIdx} />;
-            })}
-        </main>
+        <>
+            <Result />
+            <main className={`px-4 flex flex-col justify-center ${isWorking && 'cursor-progress'}`}>
+                {new Array(playgroundSize).fill(null).map((_, levelIdx) => {
+                    return <Level key={levelIdx} levelIdx={levelIdx} />;
+                })}
+            </main>
+        </>
     );
 };
 
