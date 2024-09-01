@@ -32,7 +32,7 @@ const resources = {
     sk: {
         translation: {
             header: {
-                title: 'Piškôrky 3D'
+                title: 'Piškvorky 3D'
             },
             controls: {
                 restart: 'Reštartovať hru',

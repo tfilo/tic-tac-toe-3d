@@ -1,6 +1,6 @@
 {
-    "short_name": "Tic-Tac-Toe 3D",
-    "name": "Tic-Tac-Toe 3D",
+    "short_name": "Piškvorky 3D",
+    "name": "Piškvorky 3D",
     "icons": [
         {
             "src": "favicon.ico",
@@ -18,7 +18,9 @@
             "sizes": "512x512"
         }
     ],
+    "author": "Tomáš Filo",
     "start_url": ".",
+    "default_locale": "sk",
     "display": "standalone",
     "theme_color": "#000000",
     "background_color": "#ffffff"
