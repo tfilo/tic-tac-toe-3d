@@ -10,11 +10,12 @@ type ColumnProps = {
 };
 
 const Column: React.FC<ColumnProps> = ({ columnIdx, levelIdx, rowIdx }) => {
-    const { markMove, result, playground, playgroundSize } = useContext(GameContext);
+    const { markMove, result, playground, playgroundSize, lastPlayed } = useContext(GameContext);
     const [errorMove, setErrorMove] = useState(false);
 
     const markIndex = playgroundSize * playgroundSize * levelIdx + playgroundSize * rowIdx + columnIdx;
     const mark = playground[markIndex];
+    const isLastPlayed = markIndex === lastPlayed;
     const hasWinner = !!result;
     const isWinnerCell = result?.winningMarks.includes(markIndex);
 
@@ -35,6 +36,8 @@ const Column: React.FC<ColumnProps> = ({ columnIdx, levelIdx, rowIdx }) => {
         const base = ['border', 'border-gray-300', 'w-9', 'h-9', 'min-w-9', 'max-w-9', 'min-h-9', 'max-h-9'];
         if (isWinnerCell) {
             base.push('bg-green-100');
+        } else if (isLastPlayed && mark === 'o') {
+            base.push('bg-blue-100');
         }
         if (errorMove) {
             base.push('animate-wiggle', 'border-gray-600');
@@ -43,7 +46,7 @@ const Column: React.FC<ColumnProps> = ({ columnIdx, levelIdx, rowIdx }) => {
             base.push('hover:border-gray-600', 'hover:bg-gray-100');
         }
         return base.join(' ');
-    }, [isWinnerCell, errorMove, hasWinner]);
+    }, [isWinnerCell, isLastPlayed, mark, errorMove, hasWinner]);
 
     return (
         <button className={btnClass} onClick={onMarkHandler} disabled={hasWinner || errorMove} onAnimationEnd={() => setErrorMove(false)}>

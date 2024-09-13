@@ -15,6 +15,8 @@ type GameContextValue = {
     readonly playground: NullablePlayerMark[];
     /** Current user on the move */
     readonly activePlayer: PlayerMark;
+    /** Last played mark on playground */
+    readonly lastPlayed: number | null;
     /** Marks move for current user and change to next user */
     markMove: (index: number) => void;
     /** Resets playground, optionaly change to different size */
@@ -47,6 +49,7 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const playgroundSize = Math.cbrt(playground.length);
     const [gameInProgress, setGameInProgress] = useState(false);
     const [isWorking, setIsWorking] = useState(false);
+    const [lastPlayed, setLastPlayed] = useState<number | null>(null);
 
     const markMove = useCallback(
         (index: number) => {
@@ -59,6 +62,7 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
                     res.splice(index, 1, activePlayer);
                     return res;
                 });
+                setLastPlayed(index);
                 setActivePlayer((prev) => {
                     if (prev === 'x') {
                         return 'o';
@@ -119,6 +123,7 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
             playground,
             playgroundSize,
             activePlayer,
+            lastPlayed,
             markMove,
             resetPlayground,
             result,
@@ -128,7 +133,7 @@ export const GameProvider: React.FC<PropsWithChildren> = ({ children }) => {
             gameInProgress,
             isWorking
         }),
-        [activePlayer, defaultPlayer, gameInProgress, markMove, playground, playgroundSize, resetPlayground, result, isWorking]
+        [playground, playgroundSize, activePlayer, lastPlayed, markMove, resetPlayground, result, defaultPlayer, gameInProgress, isWorking]
     );
 
     return <GameContext.Provider value={context}>{children}</GameContext.Provider>;
